@@ -14,7 +14,7 @@
 #define STATE_00000 0b00000
 
 
-//延长灰度传感器后将原来5个引脚修正为7个引脚
+//七路灰度传感器作为伪五路传感器使用 无视原3 5路
 const int L1 = A1; 
 const int L2 = A2;
 const int MID = A3;
