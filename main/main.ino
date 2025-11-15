@@ -127,7 +127,7 @@ void fuWaFuWaGrass(){//草地
   while(readSensorState() != STATE_00000) {
     lineMove();
   }
-  // 下草检测：直行直到传感器非全黑（草地出口）
+  // 下草检测：直行直到传感器非全白（草地出口）
   while (readSensorState() == STATE_00000) {
     fixMove();
   }
@@ -200,25 +200,37 @@ void smallStair(){//小型阶梯 全黑色
 }
 void longLine(){//用于小型阶梯到栅格的长距离移动 速度理应加快
   while (readSensorState() != STATE_11111) {
-  lineMove();
+    lineMove();
   }
   turnRightL();
   while (readSensorState() != STATE_11111) {
-  lineMove();
+    lineMove();
   }
   fixMove();
   delay(1000);
   while (readSensorState() != STATE_11111) {
-  lineMove();
+    lineMove();
   }
   turnRightL();
   StateCount++;
 }
-void grid(){//栅格
-  move();
-  delay(2000);
+void grid(){//栅格 疑似全白地形
+  // 上格检测：巡线直到传感器全白
+  while(readSensorState() != STATE_00000) {
+    lineMove();
+  }
+  // 格子检测：直行直到传感器非白（草地出口）
+  while (readSensorState() == STATE_00000) {
+    fixMove();
+  }
+  StateCount++;
 }
 void narrowBridge() { // 窄桥任务（全黑色）
+  while (readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  fixMove();
+  delay(1000);
   // 上桥检测：巡线直到传感器全黑（窄桥入口）
   while (readSensorState() != STATE_11111) {
     lineMove();
@@ -228,10 +240,14 @@ void narrowBridge() { // 窄桥任务（全黑色）
   while (readSensorState() == STATE_11111) {
     fixMove();
   }
-  
   StateCount++; // 任务完成计数
 }
 void bigStair(){//大型阶梯 全黑色 
+  // 十字路口监测
+  while (readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  turnRightL();
   // 上梯检测：巡线直到传感器全黑（入口）
   while (readSensorState() != STATE_11111) {
     lineMove();
@@ -245,6 +261,11 @@ void bigStair(){//大型阶梯 全黑色
   StateCount++; // 任务完成计数
 }
 void shitSpeed(){//石块（屎块地形） 带黑色 一半
+  // 十字路口监测
+  while (readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  turnRightL();
 }
 
 //巡线模式
