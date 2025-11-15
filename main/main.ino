@@ -91,6 +91,61 @@ void setup() {
 
 void loop() {
   lineMove();
+  swtich(StateCount){
+    case 0: {
+      notFastBlock();
+      break;
+    }
+    case 1: {
+      fuWaFuWaGrass();
+      break;
+    }
+    case 2: {
+      squareTunnel();
+      break;
+    }
+    case 3: {
+      uTunnel();
+      break;
+    }
+    case 4: {
+      woodenTriangle();
+      break;
+    }
+    case 5: {
+      smallStair();
+      break;
+    }
+    case 6: {
+      longLine();
+      break;
+    }
+    case 7: {
+      grid();
+      break;
+    }
+    case 8: {
+      narrowBridge();
+      break;
+    }
+    case 9: {
+      bigStair();
+      break;
+    }
+    case 10: {
+      shitSpeed();
+      break;
+    }
+    case 11: {
+      moveWithSpeed(70,40);
+      delay(3000);
+      stop();
+      break;
+    }
+    default: {
+      stop();
+    }
+  }
 }
 
 //任务函数
@@ -98,7 +153,7 @@ void loop() {
 
 
 
-void notFastBlock(){//减速带
+void notFastBlock(){//减速带 0
   //检测第一个十字路口
   while (readSensorState() != STATE_11111) {
     fixMove();
@@ -113,10 +168,10 @@ void notFastBlock(){//减速带
     fixMove();
   }
   
-  StateCount++; // 任务完成计数
+  StateCount++; // 任务完成计数 0-1
   
 }
-void fuWaFuWaGrass(){//草地
+void fuWaFuWaGrass(){//草地 1
   //十字路口监测
   while(readSensorState() != STATE_11111) {
     lineMove();
@@ -131,9 +186,9 @@ void fuWaFuWaGrass(){//草地
   while (readSensorState() == STATE_00000) {
     fixMove();
   }
-  StateCount++; // 任务完成计数
+  StateCount++; // 任务完成计数 1-2
 }
-void squareTunnel(){//方形隧道 定制巡线逻辑
+void squareTunnel(){//方形隧道 2 定制巡线逻辑
   int TurnLeftCount = 0;
   while(readSensorState() != STATE_11111) {
     lineMove();
@@ -157,10 +212,10 @@ void squareTunnel(){//方形隧道 定制巡线逻辑
       break;
     }
   }
-  StateCount++;
+  StateCount++; // 任务完成计数 2-3
 
 }
-void uTunnel(){//U形隧道
+void uTunnel(){//U形隧道 3
   //十字路口监测
   while(readSensorState() != STATE_11111) {
     turnRightL();
@@ -172,9 +227,9 @@ void uTunnel(){//U形隧道
   }
   fixMove();
   delay(1000);
-  StateCount++; //任务完成计数
+  StateCount++; //任务完成计数 3-4
 }
-void woodenTriangle(){//防滑带
+void woodenTriangle(){//防滑带 4
   // 上格检测：巡线直到传感器全白（防滑带入口）
   while(readSensorState() != STATE_00000) {
     lineMove();
@@ -183,9 +238,9 @@ void woodenTriangle(){//防滑带
   while (readSensorState() == STATE_00000) {
     fixMove();
   }
-  StateCount++; // 任务完成计数
+  StateCount++; // 任务完成计数4-5
 }
-void smallStair(){//小型阶梯 全黑色 
+void smallStair(){//小型阶梯 5 全黑色 
   // 上梯检测：巡线直到传感器全黑（入口）
   while (readSensorState() != STATE_11111) {
     lineMove();
@@ -196,9 +251,9 @@ void smallStair(){//小型阶梯 全黑色
     fixMove();
   }
   
-  StateCount++; // 任务完成计数
+  StateCount++; // 任务完成计数 5 - 6
 }
-void longLine(){//用于小型阶梯到栅格的长距离移动 速度理应加快
+void longLine(){//用于小型阶梯到栅格的长距离移动 6 速度理应加快
   while (readSensorState() != STATE_11111) {
     lineMove();
   }
@@ -212,9 +267,9 @@ void longLine(){//用于小型阶梯到栅格的长距离移动 速度理应加�
     lineMove();
   }
   turnRightL();
-  StateCount++;
+  StateCount++; // 任务完成计数 6 -7
 }
-void grid(){//栅格 疑似全白地形
+void grid(){//栅格 疑似全白地形 7
   // 上格检测：巡线直到传感器全白
   while(readSensorState() != STATE_00000) {
     lineMove();
@@ -223,9 +278,9 @@ void grid(){//栅格 疑似全白地形
   while (readSensorState() == STATE_00000) {
     fixMove();
   }
-  StateCount++;
+  StateCount++; // 任务完成计数 7 - 8
 }
-void narrowBridge() { // 窄桥任务（全黑色）
+void narrowBridge() { // 窄桥任务（全黑色） 8
   while (readSensorState() != STATE_11111) {
     lineMove();
   }
@@ -240,9 +295,9 @@ void narrowBridge() { // 窄桥任务（全黑色）
   while (readSensorState() == STATE_11111) {
     fixMove();
   }
-  StateCount++; // 任务完成计数
+  StateCount++; // 任务完成计数 8 - 9
 }
-void bigStair(){//大型阶梯 全黑色 
+void bigStair(){//大型阶梯 全黑色 9
   // 十字路口监测
   while (readSensorState() != STATE_11111) {
     lineMove();
@@ -258,7 +313,7 @@ void bigStair(){//大型阶梯 全黑色
     fixMove();
   }
   
-  StateCount++; // 任务完成计数
+  StateCount++; // 任务完成计数 9 - 10
 }
 void shitSpeed(){//石块（屎块地形） 带黑色 一半
   // 十字路口监测
@@ -266,6 +321,7 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
     lineMove();
   }
   turnRightL();
+  StateCount++ // 任务完成计数 10 - 11
 }
 
 //巡线模式
