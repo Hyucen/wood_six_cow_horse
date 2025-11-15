@@ -1,0 +1,361 @@
+#define STATE_00100 0b00100
+#define STATE_01100 0b01100
+#define STATE_00110 0b00110
+#define STATE_00010 0b00010
+#define STATE_01000 0b01000
+#define STATE_00011 0b00011
+#define STATE_11000 0b11000
+#define STATE_11111 0b11111
+#define STATE_00001 0b00001
+#define STATE_10000 0b10000
+#define STATE_00000 0b00000
+#define STATE_00111 0b00111
+#define STATE_11100 0b11100
+#define STATE_00000 0b00000
+
+
+//延长灰度传感器后将原来5个引脚修正为7个引脚
+const int L1 = A1; 
+const int L2 = A2;
+const int MID = A3;
+const int R2 = A4;
+const int R1 = A5;
+
+//方向控制及直流电机控制引脚
+const int IN1 = 4;
+const int IN2 = 5;
+const int ENA = 11;//右排轮
+const int ENB = 10;//左排轮
+const int IN3 = 6;
+const int IN4 = 7;
+
+int StateCount = 0;
+//任务状态字 2 8 5 6 7 3 1 10 9 4
+// 栅格1
+// 减速带2
+// 小型阶梯3
+// 石块4
+// 方形隧道5
+// U型隧道6
+// 防滑带7
+// 柔软草地8
+// 大型阶梯9
+// 窄桥10
+  /*1减速带本体带全黑
+  全黑后++ 入线一段距离十字路口 直走到草坪
+  草坪理应全白，
+  全白后++ 入线一段距离十字路口， 直走到方形隧道
+  方形隧道 两个左转后++ 右转再左转（能否直接巡线？)
+  到十字路口后右转
+  再左转再右转到U型隧道
+  U型隧道出口后右转++
+  后右转到十字路口后直走到防滑带
+  防滑带全白
+  全白后 到十字路口后直行再++
+  小型阶梯全黑
+  全黑后++ 入线一段距离到十字路口右转
+  长距离计算一个十字一个T形增加速度（多写一个函数）
+  T形后++到栅格
+  栅格出来后遇到十字路口直走后++
+  到窄桥 窄桥理应全黑
+  全黑后 入线++
+  遇到十字路口后右转
+  右转后进全黑大型阶梯
+  出全黑进线++
+  下个十字路口直行
+  触发直行后切换计时定速移动
+  */
+
+
+void setup() {
+  //传感器初始化
+
+  pinMode(L1, INPUT); 
+  pinMode(L2, INPUT);
+  pinMode(MID, INPUT);
+  pinMode(R2, INPUT);
+  pinMode(R1, INPUT);
+
+
+  //电机初始化
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("系统启动");
+
+}
+
+void loop() {
+  lineMove();
+}
+
+//任务函数
+/*TODO 所有任务前应当加入十字路口判定 所有任务后应当加入状态机更改判定*/
+
+
+
+void notFastBlock(){//减速带
+  //检测第一个十字路口
+  while (readSensorState() != STATE_11111) {
+    fixMove();
+  }
+  //上带检测（黄）
+  while (readSensorState() != STATE_00000) {
+    lineMove();
+  }
+  fixMove();
+  delay(500);
+  while (readSensorState() != STATE_11111){
+    fixMove();
+  }
+  
+  StateCount++; // 任务完成计数
+  
+}
+void fuWaFuWaGrass(){//草地
+  //十字路口监测
+  while(readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  fixMove();
+  delay(1000);
+  // 上草检测：巡线直到传感器全白（草地入口）
+  while(readSensorState() != STATE_00000) {
+    lineMove();
+  }
+  // 下草检测：直行直到传感器非全黑（草地出口）
+  while (readSensorState() == STATE_00000) {
+    fixMove();
+  }
+  StateCount++; // 任务完成计数
+}
+void squareTunnel(){//方形隧道 定制巡线逻辑
+  int TurnLeftCount = 0;
+  while(readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  fixMove();
+  delay(1000);
+  //左右左左右左
+  while(1){//定制巡线逻辑
+    if (readSensorState() == STATE_00100 && TurnLeftCount<4) {
+      move();
+    }else if(readSensorState() == STATE_01100 || readSensorState() == STATE_01000 && TurnLeftCount < 4){
+      turnLeftS();
+    }else if(readSensorState() == STATE_00110 || readSensorState() == STATE_00010 && TurnLeftCount < 4){
+      turnRightS();
+    }else if(readSensorState() == STATE_11100 && TurnLeftCount < 4){
+      turnLeftL();
+      TurnLeftCount++;
+    }else if(readSensorState() == STATE_00111 && TurnLeftCount < 4){
+      turnRightL();
+    }else if(TurnLeftCount == 4){
+      break;
+    }
+  }
+  StateCount++;
+
+}
+void uTunnel(){//U形隧道
+  //十字路口监测
+  while(readSensorState() != STATE_11111) {
+    turnRightL();
+  }
+  fixMove();
+  delay(1000);
+  while(readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  fixMove();
+  delay(1000);
+  StateCount++; //任务完成计数
+}
+void woodenTriangle(){//防滑带
+  // 上格检测：巡线直到传感器全白（防滑带入口）
+  while(readSensorState() != STATE_00000) {
+    lineMove();
+  }
+  // 下格检测：直行直到传感器非全白（防滑带出口）
+  while (readSensorState() == STATE_00000) {
+    fixMove();
+  }
+  StateCount++; // 任务完成计数
+}
+void smallStair(){//小型阶梯 全黑色 
+  // 上梯检测：巡线直到传感器全黑（入口）
+  while (readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  
+  // 下梯检测：直行直到传感器非全黑（出口）
+  while (readSensorState() == STATE_11111) {
+    fixMove();
+  }
+  
+  StateCount++; // 任务完成计数
+}
+void longLine(){//用于小型阶梯到栅格的长距离移动 速度理应加快
+  while (readSensorState() != STATE_11111) {
+  lineMove();
+  }
+  turnRightL();
+  while (readSensorState() != STATE_11111) {
+  lineMove();
+  }
+  fixMove();
+  delay(1000);
+  while (readSensorState() != STATE_11111) {
+  lineMove();
+  }
+  turnRightL();
+  StateCount++;
+}
+void grid(){//栅格
+  move();
+  delay(2000);
+}
+void narrowBridge() { // 窄桥任务（全黑色）
+  // 上桥检测：巡线直到传感器全黑（窄桥入口）
+  while (readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  
+  // 下桥检测：直行直到传感器非全黑（窄桥出口）
+  while (readSensorState() == STATE_11111) {
+    fixMove();
+  }
+  
+  StateCount++; // 任务完成计数
+}
+void bigStair(){//大型阶梯 全黑色 
+  // 上梯检测：巡线直到传感器全黑（入口）
+  while (readSensorState() != STATE_11111) {
+    lineMove();
+  }
+  
+  // 下梯检测：直行直到传感器非全黑（出口）
+  while (readSensorState() == STATE_11111) {
+    fixMove();
+  }
+  
+  StateCount++; // 任务完成计数
+}
+void shitSpeed(){//石块（屎块地形） 带黑色 一半
+}
+
+//巡线模式
+void lineMove(){//基础巡线模式
+  if (readSensorState() == STATE_00100) {
+    move();
+  }else if(readSensorState() == STATE_01100 || readSensorState() == STATE_01000){
+    turnLeftS();
+  }else if(readSensorState() == STATE_00110 || readSensorState() == STATE_00010){
+    turnRightS();
+  }else if(readSensorState() == STATE_11100){
+    turnLeftL();
+  }else if(readSensorState() == STATE_00111){
+    turnRightL();
+  }
+}
+
+
+//移动和转向模式
+void move(){//基础移动
+  digitalWrite(IN1, 0);
+  digitalWrite(IN2, 1);
+  digitalWrite(IN3, 0);
+  digitalWrite(IN4, 1);
+  analogWrite(ENA, 120);
+  analogWrite(ENB, 90);
+}
+void fixMove(){//无巡线模式下的修正尽力均衡移动
+  digitalWrite(IN1, 0);
+  digitalWrite(IN2, 1);
+  digitalWrite(IN3, 0);
+  digitalWrite(IN4, 1);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 110);
+}
+void moveWithSpeed(int enaspeed,int enbspeed) {//定速移动
+//台阶模式下 250 220
+  digitalWrite(IN1, 0);
+  digitalWrite(IN2, 1);
+  digitalWrite(IN3, 0);
+  digitalWrite(IN4, 1);
+  analogWrite(ENA, enaspeed);
+  analogWrite(ENB, enbspeed);
+}
+void stop(){//停止
+  Serial.println("Move");
+  digitalWrite(IN1, 0);
+  digitalWrite(IN2, 0);
+  digitalWrite(IN3, 0);
+  digitalWrite(IN4, 0);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
+void turnRightS(){//暂停修正
+  Serial.println("TRs");
+  digitalWrite(IN1, 0);
+  digitalWrite(IN2, 1);
+  digitalWrite(IN3, 1);
+  digitalWrite(IN4, 0);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 140);
+}
+
+void turnLeftS(){//暂停修正
+  Serial.println("TLs");
+  digitalWrite(IN1, 1);
+  digitalWrite(IN2, 0);
+  digitalWrite(IN3, 0);
+  digitalWrite(IN4, 1);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 140);
+}
+void turnLeftL(){//大右转
+  Serial.println("TRR");
+  moveWithSpeed(100,70);
+  delay(500);
+  digitalWrite(IN1, 1);
+  digitalWrite(IN2, 0);
+  digitalWrite(IN3, 0);
+  digitalWrite(IN4, 1);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 140);
+  delay(1000);
+}
+void turnRightL(){//大左转
+  Serial.println("TRL");
+  Serial.println("TRR");
+  moveWithSpeed(100,70);
+  delay(500);
+  digitalWrite(IN1, 1);
+  digitalWrite(IN2, 0);
+  digitalWrite(IN3, 0);
+  digitalWrite(IN4, 1);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 140);
+  delay(1000);
+  digitalWrite(IN1, 0);
+  digitalWrite(IN2, 1);
+  digitalWrite(IN3, 1);
+  digitalWrite(IN4, 0);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 140);
+  delay(1000);
+}
+
+int readSensorState() {//传感器状态
+  int g1 = digitalRead(L1);
+  int g2 = digitalRead(L2);
+  int g3 = digitalRead(MID);
+  int g4 = digitalRead(R2);
+  int g5 = digitalRead(R1);
+  // 将7个传感器状态组合成一个7位二进制数（范围0-127）
+  return (g1 << 4) | (g2 << 3) | (g3 << 2) | (g4 << 1) | g5;
+}
