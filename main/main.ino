@@ -91,7 +91,7 @@ void setup() {
 
 void loop() {
   lineMove();
-  swtich(StateCount){
+  switch(StateCount){
     case 0: {
       notFastBlock();
       break;
@@ -321,7 +321,7 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
     lineMove();
   }
   turnRightL();
-  StateCount++ // 任务完成计数 10 - 11
+  StateCount++; // 任务完成计数 10 - 11
 }
 
 //巡线模式
