@@ -90,27 +90,62 @@ void setup() {
 }
 
 void loop() {
-  /*switch(StateCount) {
-    case 0: notFastBlock(); break;
-    case 1: fuWaFuWaGrass(); break;
-    case 2: squareTunnel(); break;
-    case 3: uTunnel(); break;
-    case 4: woodenTriangle(); break;
-    case 5: smallStair(); break;
-    case 6: longLine(); break;
-    case 7: grid(); break;
-    case 8: narrowBridge(); break;
-    case 9: bigStair(); break;
-    case 10: shitSpeed(); break;
-    case 11: 
-      moveWithSpeed(70, 40);
+  lineMove();
+  switch(StateCount){
+    case 0: {
+      notFastBlock();
+      break;
+    }
+    case 1: {
+      fuWaFuWaGrass();
+      break;
+    }
+    case 2: {
+      squareTunnel();
+      break;
+    }
+    case 3: {
+      uTunnel();
+      break;
+    }
+    case 4: {
+      woodenTriangle();
+      break;
+    }
+    case 5: {
+      smallStair();
+      break;
+    }
+    case 6: {
+      longLine();
+      break;
+    }
+    case 7: {
+      grid();
+      break;
+    }
+    case 8: {
+      narrowBridge();
+      break;
+    }
+    case 9: {
+      bigStair();
+      break;
+    }
+    case 10: {
+      shitSpeed();
+      break;
+    }
+    case 11: {
+      moveWithSpeed(70,40);
       delay(3000);
       stop();
       break;
-    default: 
+    }
+    default: {
       stop();
-      Serial.println("所有任务完成或未知状态");
-  }*/
+    }
+  }
 }
 
 //任务函数
@@ -132,9 +167,9 @@ void notFastBlock(){//减速带 0
   while (readSensorState() != STATE_11111){
     fixMove();
   }
-  
+
   StateCount++; // 任务完成计数 0-1
-  
+
 }
 void fuWaFuWaGrass(){//草地 1
   //十字路口监测
@@ -210,12 +245,12 @@ void smallStair(){//小型阶梯 5 全黑色
   while (readSensorState() != STATE_11111) {
     lineMove();
   }
-  
+
   // 下梯检测：直行直到传感器非全黑（出口）
   while (readSensorState() == STATE_11111) {
     fixMove();
   }
-  
+
   StateCount++; // 任务完成计数 5 - 6
 }
 void longLine(){//用于小型阶梯到栅格的长距离移动 6 速度理应加快
@@ -255,7 +290,7 @@ void narrowBridge() { // 窄桥任务（全黑色） 8
   while (readSensorState() != STATE_11111) {
     lineMove();
   }
-  
+
   // 下桥检测：直行直到传感器非全黑（窄桥出口）
   while (readSensorState() == STATE_11111) {
     fixMove();
@@ -272,12 +307,12 @@ void bigStair(){//大型阶梯 全黑色 9
   while (readSensorState() != STATE_11111) {
     lineMove();
   }
-  
+
   // 下梯检测：直行直到传感器非全黑（出口）
   while (readSensorState() == STATE_11111) {
     fixMove();
   }
-  
+
   StateCount++; // 任务完成计数 9 - 10
 }
 void shitSpeed(){//石块（屎块地形） 带黑色 一半
@@ -285,6 +320,7 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
   while (readSensorState() != STATE_11111) {
     lineMove();
   }
+  turnRightL();
   fixMove();
   delay(2000);
   lineMove();
@@ -296,45 +332,19 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
 
 //巡线模式
 void lineMove(){//基础巡线模式
-  int sensorState = readSensorState();
-  
-  switch(sensorState) {
-    case STATE_00100:
-      move();
-      break;
-    case STATE_01100:
-    case STATE_01000:
-      turnLeftS();
-      break;
-    case STATE_00110:
-    case STATE_00010:
-      turnRightS();
-      break;
-    case STATE_11100:
-      turnLeftL();
-      break;
-    case STATE_00111:
-      turnRightL();
-      break;
-    case STATE_00000:
-      // 全白处理（丢失线路）
-      handleLostLine();
-      break;
-    default:
-      // 未定义状态，保守直行
-      move();
-      break;
+  if (readSensorState() == STATE_00100) {
+    move();
+  }else if(readSensorState() == STATE_01100 || readSensorState() == STATE_01000){
+    turnLeftS();
+  }else if(readSensorState() == STATE_00110 || readSensorState() == STATE_00010){
+    turnRightS();
+  }else if(readSensorState() == STATE_11100){
+    turnLeftL();
+  }else if(readSensorState() == STATE_00111){
+    turnRightL();
   }
 }
-// 丢失线路处理函数
-void handleLostLine() {
-  turnRightS();
-  delay(200);
-  turnLeftS();
-  delay(200);
-  move();
-  delay(100);
-}
+
 
 //移动和转向模式
 void move(){//基础移动
@@ -343,7 +353,7 @@ void move(){//基础移动
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
   analogWrite(ENA, 120);
-  analogWrite(ENB, 90);
+  analogWrite(ENB, 120);
 }
 void fixMove(){//无巡线模式下的修正尽力均衡移动
   digitalWrite(IN1, 0);
@@ -351,7 +361,7 @@ void fixMove(){//无巡线模式下的修正尽力均衡移动
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
   analogWrite(ENA, 140);
-  analogWrite(ENB, 110);
+  analogWrite(ENB, 140);
 }
 void moveWithSpeed(int enaspeed,int enbspeed) {//定速移动
 //台阶模式下 250 220
@@ -404,7 +414,6 @@ void turnLeftL(){//大右转
 }
 void turnRightL(){//大左转
   Serial.println("TRL");
-  Serial.println("TRR");
   moveWithSpeed(100,70);
   delay(500);
   digitalWrite(IN1, 1);
@@ -431,4 +440,3 @@ int readSensorState() {//传感器状态
   int g5 = digitalRead(R1);
   // 将7个传感器状态组合成一个7位二进制数（范围0-127）
   return (g1 << 4) | (g2 << 3) | (g3 << 2) | (g4 << 1) | g5;
-}
