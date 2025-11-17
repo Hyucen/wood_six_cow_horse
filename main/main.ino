@@ -320,7 +320,12 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
   while (readSensorState() != STATE_11111) {
     lineMove();
   }
-  turnRightL();
+  fixMove();
+  delay(2000);
+  lineMove();
+  delay(5000);
+  fixMove();
+  delay(7000);
   StateCount++; // 任务完成计数 10 - 11
 }
 
