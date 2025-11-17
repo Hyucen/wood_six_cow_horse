@@ -90,7 +90,7 @@ void setup() {
 }
 
 void loop() {
-  switch(StateCount) {
+  /*switch(StateCount) {
     case 0: notFastBlock(); break;
     case 1: fuWaFuWaGrass(); break;
     case 2: squareTunnel(); break;
@@ -110,7 +110,7 @@ void loop() {
     default: 
       stop();
       Serial.println("所有任务完成或未知状态");
-  }
+  }*/
 }
 
 //任务函数
