@@ -90,61 +90,26 @@ void setup() {
 }
 
 void loop() {
-  lineMove();
-  switch(StateCount){
-    case 0: {
-      notFastBlock();
-      break;
-    }
-    case 1: {
-      fuWaFuWaGrass();
-      break;
-    }
-    case 2: {
-      squareTunnel();
-      break;
-    }
-    case 3: {
-      uTunnel();
-      break;
-    }
-    case 4: {
-      woodenTriangle();
-      break;
-    }
-    case 5: {
-      smallStair();
-      break;
-    }
-    case 6: {
-      longLine();
-      break;
-    }
-    case 7: {
-      grid();
-      break;
-    }
-    case 8: {
-      narrowBridge();
-      break;
-    }
-    case 9: {
-      bigStair();
-      break;
-    }
-    case 10: {
-      shitSpeed();
-      break;
-    }
-    case 11: {
-      moveWithSpeed(70,40);
+  switch(StateCount) {
+    case 0: notFastBlock(); break;
+    case 1: fuWaFuWaGrass(); break;
+    case 2: squareTunnel(); break;
+    case 3: uTunnel(); break;
+    case 4: woodenTriangle(); break;
+    case 5: smallStair(); break;
+    case 6: longLine(); break;
+    case 7: grid(); break;
+    case 8: narrowBridge(); break;
+    case 9: bigStair(); break;
+    case 10: shitSpeed(); break;
+    case 11: 
+      moveWithSpeed(70, 40);
       delay(3000);
       stop();
       break;
-    }
-    default: {
+    default: 
       stop();
-    }
+      Serial.println("所有任务完成或未知状态");
   }
 }
 
@@ -331,19 +296,45 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
 
 //巡线模式
 void lineMove(){//基础巡线模式
-  if (readSensorState() == STATE_00100) {
-    move();
-  }else if(readSensorState() == STATE_01100 || readSensorState() == STATE_01000){
-    turnLeftS();
-  }else if(readSensorState() == STATE_00110 || readSensorState() == STATE_00010){
-    turnRightS();
-  }else if(readSensorState() == STATE_11100){
-    turnLeftL();
-  }else if(readSensorState() == STATE_00111){
-    turnRightL();
+  int sensorState = readSensorState();
+  
+  switch(sensorState) {
+    case STATE_00100:
+      move();
+      break;
+    case STATE_01100:
+    case STATE_01000:
+      turnLeftS();
+      break;
+    case STATE_00110:
+    case STATE_00010:
+      turnRightS();
+      break;
+    case STATE_11100:
+      turnLeftL();
+      break;
+    case STATE_00111:
+      turnRightL();
+      break;
+    case STATE_00000:
+      // 全白处理（丢失线路）
+      handleLostLine();
+      break;
+    default:
+      // 未定义状态，保守直行
+      move();
+      break;
   }
 }
-
+// 丢失线路处理函数
+void handleLostLine() {
+  turnRightS();
+  delay(200);
+  turnLeftS();
+  delay(200);
+  move();
+  delay(100);
+}
 
 //移动和转向模式
 void move(){//基础移动
