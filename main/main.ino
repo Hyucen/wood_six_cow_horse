@@ -91,7 +91,7 @@ void setup() {
 
 void loop() {
   lineMove();
-  switch(StateCount){
+  /*switch(StateCount){
     case 0: {
       notFastBlock();
       break;
@@ -145,7 +145,7 @@ void loop() {
     default: {
       stop();
     }
-  }
+  }*/
 }
 
 //任务函数
@@ -440,3 +440,4 @@ int readSensorState() {//传感器状态
   int g5 = digitalRead(R1);
   // 将7个传感器状态组合成一个7位二进制数（范围0-127）
   return (g1 << 4) | (g2 << 3) | (g3 << 2) | (g4 << 1) | g5;
+}
