@@ -167,7 +167,6 @@ void notFastBlock(){//减速带 0
   while (readSensorState() != STATE_11111){
     fixMove();
   }
-
   StateCount++; // 任务完成计数 0-1
 
 }
@@ -367,8 +366,8 @@ void move(){//基础移动
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
-  analogWrite(ENA, 150);
-  analogWrite(ENB, 150);
+  analogWrite(ENA, 160);
+  analogWrite(ENB, 160);
 }
 void fixMove(){//无巡线模式下的修正尽力均衡移动
   digitalWrite(IN1, 0);
