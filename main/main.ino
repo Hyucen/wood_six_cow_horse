@@ -32,7 +32,8 @@ const int IN3 = 6;
 const int IN4 = 7;
 
 int StateCount = 0;
-//任务状态字 2 8 5 6 7 3 1 10 9 4
+bool Stateing = false;
+//任务流程 2 8 5 6 7 3 1 10 9 4
 // 栅格1
 // 减速带2
 // 小型阶梯3
@@ -92,7 +93,8 @@ void setup() {
 }
 
 void loop() {
-  switch(StateCount){
+  lineMove();
+ /*switch(StateCount){
     case 0: {
       notFastBlock();
       break;
@@ -138,7 +140,7 @@ void loop() {
       break;
     }
     case 11: {
-      moveWithSpeed(70,40);
+      setMove(80,80);
       delay(3000);
       stop();
       break;
@@ -146,7 +148,7 @@ void loop() {
     default: {
       stop();
     }
-  }
+  }*/ 
 }
 
 //任务函数
@@ -155,11 +157,11 @@ void loop() {
 
 
 void notFastBlock(){//减速带 0
-
+  //
+  Stateing = true;
   while (readSensorState() != STATE_11111) {
-    fixMove();
+    lineMove();
   }
-  set
   StateCount++; // 任务完成计数 0-1
 
 }
@@ -331,21 +333,20 @@ void lineMove(){//基础巡线模式
   }else if(readSensorState() == STATE_00110){
     turnRightS();
   }else if(readSensorState() == STATE_11100 || readSensorState() == STATE_11110){
-    delay(500);
+    delay(50);
     if(readSensorState() != STATE_11111){
     turnLeftL();
     } else {
       move();
     }
   }else if(readSensorState() == STATE_00111 || readSensorState() == STATE_01111){
-    delay(500);
+    delay(50);
     if(readSensorState() != STATE_11111){
     turnRightL();
     } else {
       move();
     }
   }else if(readSensorState() == STATE_00000){
-    handleLostLine();
   }else {
     move();
   }
@@ -359,16 +360,16 @@ void move(){//基础移动
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
-  analogWrite(ENA, 160);
-  analogWrite(ENB, 160);
+  analogWrite(ENA, 120);
+  analogWrite(ENB, 120);
 }
 void fixMove(){//无巡线模式下的修正尽力均衡移动
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
-  analogWrite(ENA, 160);
-  analogWrite(ENB, 160);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 140);
 }
 void setMove(int enbspeed,int enaspeed) {//定速移动 参数 左 右
   digitalWrite(IN1, 0);
@@ -408,24 +409,28 @@ void turnLeftS(){//向左侧原地修正
 }
 void turnLeftL(){//左转
   Serial.println("TRR");
-  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110){
+  unsigned long startTime = millis();
+  const unsigned long timeout = 1500;
+  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 || startTime < 1000){
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 1);
   digitalWrite(IN4, 0);
-  analogWrite(ENA, 140);
+  analogWrite(ENA, 180);
   analogWrite(ENB, 140);
   }
 }
 void turnRightL(){//右转
   Serial.println("TRL");
-  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110){
+  unsigned long startTime = millis();
+  const unsigned long timeout = 1000;
+  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 || startTime < 1500){
   digitalWrite(IN1, 1);
   digitalWrite(IN2, 0);
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
   analogWrite(ENA, 140);
-  analogWrite(ENB, 140);
+  analogWrite(ENB, 180);
   }
 }
 
