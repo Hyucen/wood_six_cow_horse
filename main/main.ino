@@ -159,14 +159,7 @@ void notFastBlock(){//减速带 0
   while (readSensorState() != STATE_11111) {
     fixMove();
   }
-  //上带检测（黄）
-  while (readSensorState() != STATE_00000) {
-    lineMove();
-  }
-  fixMove();
-  while (readSensorState() != STATE_11111){
-    fixMove();
-  }
+  set
   StateCount++; // 任务完成计数 0-1
 
 }
@@ -377,8 +370,7 @@ void fixMove(){//无巡线模式下的修正尽力均衡移动
   analogWrite(ENA, 160);
   analogWrite(ENB, 160);
 }
-void moveWithSpeed(int enaspeed,int enbspeed) {//定速移动
-//台阶模式下 250 220
+void setMove(int enbspeed,int enaspeed) {//定速移动 参数 左 右
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 0);
@@ -445,33 +437,4 @@ int readSensorState() {//传感器状态
   int g5 = digitalRead(R1);
   // 将7个传感器状态组合成一个7位二进制数（范围0-127）
   return (g1 << 4) | (g2 << 3) | (g3 << 2) | (g4 << 1) | g5;
-}
-void handleLostLine() {
-  Serial.println("警告：丢失线路，尝试恢复");
-  // 简单恢复策略：后退并小范围搜索
-  stop();
-  delay(100);
-  
-  // 尝试向右搜索
-  turnRightS();
-  delay(200);
-  int state = readSensorState();
-  if (state == STATE_01110 || state == STATE_01100 || state == STATE_00110) {
-    Serial.println("向右搜索找到线路");
-    return;
-  }
-  
-  // 尝试向左搜索
-  turnLeftS();
-  delay(400);
-  state = readSensorState();
-  if (state == STATE_01110 || state == STATE_01100 || state == STATE_00110) {
-    Serial.println("向左搜索找到线路");
-    return;
-  }
-  
-  // 如果仍然找不到，直行一段距离
-  move();
-  delay(300);
-  Serial.println("直行寻找线路");
 }
