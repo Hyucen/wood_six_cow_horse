@@ -46,30 +46,9 @@ int debugcount = 0;
 // 柔软草地8
 // 大型阶梯9
 // 窄桥10
-  /*1减速带本体带全黑
-  全黑后++ 入线一段距离十字路口 直走到草坪
-  草坪理应全白，
-  全白后++ 入线一段距离十字路口， 直走到方形隧道
-  方形隧道 两个左转后++ 右转再左转（能否直接巡线？)
-  到十字路口后右转
-  再左转再右转到U型隧道
-  U型隧道出口后右转++
-  后右转到十字路口后直走到防滑带
-  防滑带全白
-  全白后 到十字路口后直行再++
-  小型阶梯全黑
-  全黑后++ 入线一段距离到十字路口右转
-  长距离计算一个十字一个T形增加速度（多写一个函数）
-  T形后++到栅格
-  栅格出来后遇到十字路口直走后++
-  到窄桥 窄桥理应全黑
-  全黑后 入线++
-  遇到十字路口后右转
-  右转后进全黑大型阶梯
-  出全黑进线++
-  下个十字路口直行
-  触发直行后切换计时定速移动
-  */
+/* 除了长距离任务 其余所有的任务中间一定是至多间隔一个十字路口 
+执行完十字路口函数之后开始任务前 十字路口设为禁止 任务结束后设为允许
+*/
 
 
 void setup() {
@@ -327,6 +306,10 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
   StateCount++; // 任务完成计数 10 - 11
 }
 
+
+
+
+
 //巡线模式
 void lineMove(){//基础巡线模式
   //正常移动
@@ -460,7 +443,7 @@ void turnLeftL(){//左转
   //转弯流程
   unsigned long startTime= millis();
   const unsigned long timeout = 1000;
-  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 )|| readSensorState() == STATE_00000 ){
+  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 ) || readSensorState() == STATE_00000 ){
     digitalWrite(IN1, 0);
     digitalWrite(IN2, 1);
     digitalWrite(IN3, 1);
