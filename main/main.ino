@@ -33,6 +33,8 @@ const int IN4 = 7;
 
 int StateCount = 0;
 bool Stateing = false;
+
+int debugcount = 0;
 //任务流程 2 8 5 6 7 3 1 10 9 4
 // 栅格1
 // 减速带2
@@ -94,6 +96,7 @@ void setup() {
 
 void loop() {
   lineMove();
+  //Serial.println(debugcount);
  /*switch(StateCount){
     case 0: {
       notFastBlock();
@@ -326,27 +329,58 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
 
 //巡线模式
 void lineMove(){//基础巡线模式
+  //正常移动
   if (readSensorState() == STATE_01110) {
     move();
-  }else if(readSensorState() == STATE_01100){
+  }else 
+
+  //左偏移修正
+  if(readSensorState() == STATE_01100 || readSensorState() == STATE_11000){
     turnLeftS();
-  }else if(readSensorState() == STATE_00110){
+  }else 
+
+  //右偏移修正
+  if(readSensorState() == STATE_00110 || readSensorState() == STATE_00011){
     turnRightS();
-  }else if(readSensorState() == STATE_11100 || readSensorState() == STATE_11110){
-    delay(50);
-    if(readSensorState() != STATE_11111){
-    turnLeftL();
-    } else {
-      move();
+  }else 
+
+  //带有路口判定的制动左转弯
+  if(readSensorState() == STATE_11100 || readSensorState() == STATE_11110 && Stateing == false){
+
+    //L T + 型路口判定
+    //制动流程
+    brake();
+    delay(200); 
+
+    //制动后判定是否是T +路口
+    if(readSensorState() == STATE_11111){
+      crossMove();
+    }else 
+    //非十字路口就左转
+    {
+      turnLeftL();
     }
-  }else if(readSensorState() == STATE_00111 || readSensorState() == STATE_01111){
-    delay(50);
-    if(readSensorState() != STATE_11111){
-    turnRightL();
-    } else {
-      move();
+  }else
+
+  //带有路口判定的制动右转弯
+  if(readSensorState() == STATE_00111 || readSensorState() == STATE_01111 && Stateing == false){
+
+    //L T + 型路口判定
+    //制动流程
+    brake();
+    delay(200);
+
+    //制动后判定是否是T +路口
+    if(readSensorState() == STATE_11111){
+      crossMove();
+    }else
+
+    //非十字路口就右转
+    {
+      turnRightL();
     }
   }else if(readSensorState() == STATE_00000){
+    //TODO 丢失线路判定
   }else {
     move();
   }
@@ -354,6 +388,9 @@ void lineMove(){//基础巡线模式
 
 
 //移动和转向模式
+void crossMove(){
+  move();
+}
 void move(){//基础移动
   Serial.println("Move");
   digitalWrite(IN1, 0);
@@ -407,30 +444,45 @@ void turnLeftS(){//向左侧原地修正
   analogWrite(ENA, 140);
   analogWrite(ENB, 140);
 }
+
+void brake(){
+    //制动
+    digitalWrite(IN1, 1);
+    digitalWrite(IN2, 0);
+    digitalWrite(IN3, 1);
+    digitalWrite(IN4, 0);
+    analogWrite(ENA, 100);
+    analogWrite(ENB, 100);
+    delay(20);
+    stop();
+}
 void turnLeftL(){//左转
-  Serial.println("TRR");
-  unsigned long startTime = millis();
-  const unsigned long timeout = 1500;
-  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 || startTime < 1000){
-  digitalWrite(IN1, 0);
-  digitalWrite(IN2, 1);
-  digitalWrite(IN3, 1);
-  digitalWrite(IN4, 0);
-  analogWrite(ENA, 180);
-  analogWrite(ENB, 140);
+  //转弯流程
+  unsigned long startTime= millis();
+  const unsigned long timeout = 1000;
+  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 )|| readSensorState() == STATE_00000 ){
+    digitalWrite(IN1, 0);
+    digitalWrite(IN2, 1);
+    digitalWrite(IN3, 1);
+    digitalWrite(IN4, 0);
+    analogWrite(ENA, 140);
+    analogWrite(ENB, 140);
+    if(millis() - startTime < timeout) continue;
   }
 }
 void turnRightL(){//右转
-  Serial.println("TRL");
+  //转弯流程
   unsigned long startTime = millis();
   const unsigned long timeout = 1000;
-  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 || startTime < 1500){
-  digitalWrite(IN1, 1);
-  digitalWrite(IN2, 0);
-  digitalWrite(IN3, 0);
-  digitalWrite(IN4, 1);
-  analogWrite(ENA, 140);
-  analogWrite(ENB, 180);
+  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 ) || readSensorState() == STATE_00000){
+    debugcount = 1;
+    digitalWrite(IN1, 1);
+    digitalWrite(IN2, 0);
+    digitalWrite(IN3, 0);
+    digitalWrite(IN4, 1);
+    analogWrite(ENA, 140);
+    analogWrite(ENB, 140);
+    if(millis() - startTime < timeout) continue;
   }
 }
 
