@@ -32,7 +32,10 @@ const int IN3 = 6;
 const int IN4 = 7;
 
 int StateCount = 0;
-//任务状态字 2 8 5 6 7 3 1 10 9 4
+bool Stateing = false;
+
+int debugcount = 0;
+//任务流程 2 8 5 6 7 3 1 10 9 4
 // 栅格1
 // 减速带2
 // 小型阶梯3
@@ -43,30 +46,9 @@ int StateCount = 0;
 // 柔软草地8
 // 大型阶梯9
 // 窄桥10
-  /*1减速带本体带全黑
-  全黑后++ 入线一段距离十字路口 直走到草坪
-  草坪理应全白，
-  全白后++ 入线一段距离十字路口， 直走到方形隧道
-  方形隧道 两个左转后++ 右转再左转（能否直接巡线？)
-  到十字路口后右转
-  再左转再右转到U型隧道
-  U型隧道出口后右转++
-  后右转到十字路口后直走到防滑带
-  防滑带全白
-  全白后 到十字路口后直行再++
-  小型阶梯全黑
-  全黑后++ 入线一段距离到十字路口右转
-  长距离计算一个十字一个T形增加速度（多写一个函数）
-  T形后++到栅格
-  栅格出来后遇到十字路口直走后++
-  到窄桥 窄桥理应全黑
-  全黑后 入线++
-  遇到十字路口后右转
-  右转后进全黑大型阶梯
-  出全黑进线++
-  下个十字路口直行
-  触发直行后切换计时定速移动
-  */
+/* 除了长距离任务 其余所有的任务中间一定是至多间隔一个十字路口 
+执行完十字路口函数之后开始任务前 十字路口设为禁止 任务结束后设为允许
+*/
 
 
 void setup() {
@@ -92,7 +74,9 @@ void setup() {
 }
 
 void loop() {
-  switch(StateCount){
+  lineMove();
+  //Serial.println(debugcount);
+ /*switch(StateCount){
     case 0: {
       notFastBlock();
       break;
@@ -138,7 +122,7 @@ void loop() {
       break;
     }
     case 11: {
-      moveWithSpeed(70,40);
+      setMove(80,80);
       delay(3000);
       stop();
       break;
@@ -146,7 +130,7 @@ void loop() {
     default: {
       stop();
     }
-  }
+  }*/ 
 }
 
 //任务函数
@@ -155,11 +139,11 @@ void loop() {
 
 
 void notFastBlock(){//减速带 0
-
+  //
+  Stateing = true;
   while (readSensorState() != STATE_11111) {
-    fixMove();
+    lineMove();
   }
-  set
   StateCount++; // 任务完成计数 0-1
 
 }
@@ -322,30 +306,64 @@ void shitSpeed(){//石块（屎块地形） 带黑色 一半
   StateCount++; // 任务完成计数 10 - 11
 }
 
+
+
+
+
 //巡线模式
 void lineMove(){//基础巡线模式
+  //正常移动
   if (readSensorState() == STATE_01110) {
     move();
-  }else if(readSensorState() == STATE_01100){
+  }else 
+
+  //左偏移修正
+  if(readSensorState() == STATE_01100 || readSensorState() == STATE_11000){
     turnLeftS();
-  }else if(readSensorState() == STATE_00110){
+  }else 
+
+  //右偏移修正
+  if(readSensorState() == STATE_00110 || readSensorState() == STATE_00011){
     turnRightS();
-  }else if(readSensorState() == STATE_11100 || readSensorState() == STATE_11110){
-    delay(500);
-    if(readSensorState() != STATE_11111){
-    turnLeftL();
-    } else {
-      move();
+  }else 
+
+  //带有路口判定的制动左转弯
+  if(readSensorState() == STATE_11100 || readSensorState() == STATE_11110 && Stateing == false){
+
+    //L T + 型路口判定
+    //制动流程
+    brake();
+    delay(200); 
+
+    //制动后判定是否是T +路口
+    if(readSensorState() == STATE_11111){
+      crossMove();
+    }else 
+    //非十字路口就左转
+    {
+      turnLeftL();
     }
-  }else if(readSensorState() == STATE_00111 || readSensorState() == STATE_01111){
-    delay(500);
-    if(readSensorState() != STATE_11111){
-    turnRightL();
-    } else {
-      move();
+  }else
+
+  //带有路口判定的制动右转弯
+  if(readSensorState() == STATE_00111 || readSensorState() == STATE_01111 && Stateing == false){
+
+    //L T + 型路口判定
+    //制动流程
+    brake();
+    delay(200);
+
+    //制动后判定是否是T +路口
+    if(readSensorState() == STATE_11111){
+      crossMove();
+    }else
+
+    //非十字路口就右转
+    {
+      turnRightL();
     }
   }else if(readSensorState() == STATE_00000){
-    handleLostLine();
+    //TODO 丢失线路判定
   }else {
     move();
   }
@@ -353,22 +371,25 @@ void lineMove(){//基础巡线模式
 
 
 //移动和转向模式
+void crossMove(){
+  move();
+}
 void move(){//基础移动
   Serial.println("Move");
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
-  analogWrite(ENA, 160);
-  analogWrite(ENB, 160);
+  analogWrite(ENA, 120);
+  analogWrite(ENB, 120);
 }
 void fixMove(){//无巡线模式下的修正尽力均衡移动
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
-  analogWrite(ENA, 160);
-  analogWrite(ENB, 160);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 140);
 }
 void setMove(int enbspeed,int enaspeed) {//定速移动 参数 左 右
   digitalWrite(IN1, 0);
@@ -406,26 +427,45 @@ void turnLeftS(){//向左侧原地修正
   analogWrite(ENA, 140);
   analogWrite(ENB, 140);
 }
+
+void brake(){
+    //制动
+    digitalWrite(IN1, 1);
+    digitalWrite(IN2, 0);
+    digitalWrite(IN3, 1);
+    digitalWrite(IN4, 0);
+    analogWrite(ENA, 100);
+    analogWrite(ENB, 100);
+    delay(20);
+    stop();
+}
 void turnLeftL(){//左转
-  Serial.println("TRR");
-  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110){
-  digitalWrite(IN1, 0);
-  digitalWrite(IN2, 1);
-  digitalWrite(IN3, 1);
-  digitalWrite(IN4, 0);
-  analogWrite(ENA, 140);
-  analogWrite(ENB, 140);
+  //转弯流程
+  unsigned long startTime= millis();
+  const unsigned long timeout = 1000;
+  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 ) || readSensorState() == STATE_00000 ){
+    digitalWrite(IN1, 0);
+    digitalWrite(IN2, 1);
+    digitalWrite(IN3, 1);
+    digitalWrite(IN4, 0);
+    analogWrite(ENA, 140);
+    analogWrite(ENB, 140);
+    if(millis() - startTime < timeout) continue;
   }
 }
 void turnRightL(){//右转
-  Serial.println("TRL");
-  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110){
-  digitalWrite(IN1, 1);
-  digitalWrite(IN2, 0);
-  digitalWrite(IN3, 0);
-  digitalWrite(IN4, 1);
-  analogWrite(ENA, 140);
-  analogWrite(ENB, 140);
+  //转弯流程
+  unsigned long startTime = millis();
+  const unsigned long timeout = 1000;
+  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 ) || readSensorState() == STATE_00000){
+    debugcount = 1;
+    digitalWrite(IN1, 1);
+    digitalWrite(IN2, 0);
+    digitalWrite(IN3, 0);
+    digitalWrite(IN4, 1);
+    analogWrite(ENA, 140);
+    analogWrite(ENB, 140);
+    if(millis() - startTime < timeout) continue;
   }
 }
 
