@@ -194,8 +194,23 @@ void lineMove(){//基础巡线模式
   if(readSensorState() == STATE_00110 || readSensorState() == STATE_00011){
     turnRightS();
   }else 
+  //十字路口判定 优化三
+  if(readSensorState() == STATE_11100 || readSensorState() == STATE_11110 || readSensorState() == STATE_01111 || readSensorState() == STATE_00111){
+    //制动并等待
+    brake();
+    delay(200); 
+    //因为制动惯性 先确认制动后的位置是不是全1 
+    if(readSensorState() != STATE_00000){
+    }
+  }else 
+  if(readSensorState() == STATE_00000){
+    //TODO 丢失线路判定
+  }else {
+    move();
+  }
+}
 
-  //带有路口判定的制动左转弯
+/*  //带有路口判定的制动左转弯
   if(readSensorState() == STATE_11100 || readSensorState() == STATE_11110 && Stateing == false){
 
     //L T + 型路口判定
@@ -230,12 +245,10 @@ void lineMove(){//基础巡线模式
     {
       turnRightL();
     }
-  }else if(readSensorState() == STATE_00000){
-    //TODO 丢失线路判定
-  }else {
-    move();
-  }
-}
+  }*/
+  
+  
+
 
 
 //移动和转向模式
@@ -311,7 +324,7 @@ void turnLeftL(){//左转
   //转弯流程
   unsigned long startTime= millis();
   const unsigned long timeout = 1000;
-  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 ) || readSensorState() == STATE_00000 ){
+  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 ) || readSensorState() == STATE_00000){
     digitalWrite(IN1, 0);
     digitalWrite(IN2, 1);
     digitalWrite(IN3, 1);
