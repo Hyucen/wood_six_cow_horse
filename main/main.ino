@@ -4,7 +4,10 @@
 #define STATE_01110 0b01110 //常规
 //偏移情况
 #define STATE_01100 0b01100 //右偏 向左调平
+#define STATE_11000 0b11000 //左偏 向右调平
+
 #define STATE_00110 0b00110 //左偏 向右调平
+#define STATE_00011 0b00011 //左偏 向右调平
 //转弯情况
 #define STATE_00111 0b00111 //向右转
 #define STATE_01111 0b01111 //向右转
@@ -74,9 +77,9 @@ void setup() {
 }
 
 void loop() {
-  //lineMove();
+  lineMove();
   //Serial.println(debugcount);
- switch(StateCount){
+  /*switch(StateCount){
     case 0: {
       notFastBlock();
       break;
@@ -130,7 +133,7 @@ void loop() {
     default: {
       stop();
     }
-  }
+  }*/
 }
 
 //任务函数
@@ -139,14 +142,6 @@ void loop() {
 
 
 void notFastBlock(){//减速带 0
-  //
-  Stateing = true;
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  Stateing = false;
-  StateCount++; // 任务完成计数 0-1
-
 }
 void fuWaFuWaGrass(){//草地 1 全黑地形 需要自行设定偏移
   StateCount++; // 任务完成计数 1-2
