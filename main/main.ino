@@ -78,7 +78,6 @@ void setup() {
 
 void loop() {
   lineMove();
-  //Serial.println(debugcount);
   /*switch(StateCount){
     case 0: {
       notFastBlock();
@@ -181,7 +180,7 @@ void shitSpeed(){//石块 10 难走
 //巡线模式
 void lineMove(){//基础巡线模式
   //正常移动
-  if (readSensorState() == STATE_01110) {
+  if (readSensorState() == STATE_01110 || readSensorState() == STATE_00100) {
     move();
   }else 
 
@@ -225,7 +224,6 @@ void lineMove(){//基础巡线模式
     if(readSensorState() == STATE_11111){
       crossMove();
     }else
-
     //非十字路口就右转
     {
       turnRightL();
@@ -240,7 +238,7 @@ void lineMove(){//基础巡线模式
 
 //移动和转向模式
 void crossMove(){
-  move();
+  
 }
 void move(){//基础移动
   Serial.println("Move");
@@ -248,8 +246,8 @@ void move(){//基础移动
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 0);
   digitalWrite(IN4, 1);
-  analogWrite(ENA, 120);
-  analogWrite(ENB, 120);
+  analogWrite(ENA, 140);
+  analogWrite(ENB, 145);
 }
 void fixMove(){//无巡线模式下的修正尽力均衡移动
   digitalWrite(IN1, 0);
@@ -302,38 +300,37 @@ void brake(){
     digitalWrite(IN2, 0);
     digitalWrite(IN3, 1);
     digitalWrite(IN4, 0);
-    analogWrite(ENA, 100);
-    analogWrite(ENB, 100);
-    delay(20);
+    analogWrite(ENA, 200);
+    analogWrite(ENB, 200);
+    delay(5);
     stop();
 }
 void turnLeftL(){//左转
   //转弯流程
   unsigned long startTime= millis();
   const unsigned long timeout = 1000;
-  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 ) || readSensorState() == STATE_00000 ){
+  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110){
     digitalWrite(IN1, 0);
     digitalWrite(IN2, 1);
     digitalWrite(IN3, 1);
     digitalWrite(IN4, 0);
     analogWrite(ENA, 140);
     analogWrite(ENB, 140);
-    if(millis() - startTime < timeout) continue;
+    if(millis() - startTime > timeout) return;
   }
 }
 void turnRightL(){//右转
   //转弯流程
   unsigned long startTime = millis();
   const unsigned long timeout = 1000;
-  while((readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110 ) || readSensorState() == STATE_00000){
-    debugcount = 1;
+  while(readSensorState() != STATE_01100 && readSensorState() != STATE_01110 && readSensorState() != STATE_00110){
     digitalWrite(IN1, 1);
     digitalWrite(IN2, 0);
     digitalWrite(IN3, 0);
     digitalWrite(IN4, 1);
     analogWrite(ENA, 140);
     analogWrite(ENB, 140);
-    if(millis() - startTime < timeout) continue;
+    if(millis() - startTime > timeout) return;
   }
 }
 
