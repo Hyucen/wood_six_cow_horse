@@ -74,9 +74,9 @@ void setup() {
 }
 
 void loop() {
-  lineMove();
+  //lineMove();
   //Serial.println(debugcount);
- /*switch(StateCount){
+ switch(StateCount){
     case 0: {
       notFastBlock();
       break;
@@ -130,7 +130,7 @@ void loop() {
     default: {
       stop();
     }
-  }*/ 
+  }
 }
 
 //任务函数
@@ -144,165 +144,38 @@ void notFastBlock(){//减速带 0
   while (readSensorState() != STATE_11111) {
     lineMove();
   }
+  Stateing = false;
   StateCount++; // 任务完成计数 0-1
 
 }
-void fuWaFuWaGrass(){//草地 1
-  //十字路口监测
-  while(readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  fixMove();
-  delay(1000);
-  // 上草检测：巡线直到传感器全白（草地入口）
-  while(readSensorState() != STATE_00000) {
-    lineMove();
-  }
-  // 下草检测：直行直到传感器非全白（草地出口）
-  while (readSensorState() == STATE_00000) {
-    fixMove();
-  }
+void fuWaFuWaGrass(){//草地 1 全黑地形 需要自行设定偏移
   StateCount++; // 任务完成计数 1-2
 }
-void squareTunnel(){//方形隧道 2 定制巡线逻辑
-  int TurnLeftCount = 0;
-  while(readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  fixMove();
-  delay(1000);
-  //左右左左右左
-  while(1){//定制巡线逻辑
-    if (readSensorState() == STATE_00100 && TurnLeftCount<4) {
-      move();
-    }else if(readSensorState() == STATE_01100  && TurnLeftCount < 4){
-      turnLeftS();
-    }else if(readSensorState() == STATE_00110  && TurnLeftCount < 4){
-      turnRightS();
-    }else if(readSensorState() == STATE_11100 && TurnLeftCount < 4){
-      turnLeftL();
-      TurnLeftCount++;
-    }else if(readSensorState() == STATE_00111 && TurnLeftCount < 4){
-      turnRightL();
-    }else if(TurnLeftCount == 4){
-      break;
-    }
-  }
+void squareTunnel(){//方形隧道 2 
   StateCount++; // 任务完成计数 2-3
-
 }
 void uTunnel(){//U形隧道 3
-  //十字路口监测
-  while(readSensorState() != STATE_11111) {
-    turnRightL();
-  }
-  fixMove();
-  delay(1000);
-  while(readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  fixMove();
-  delay(1000);
   StateCount++; //任务完成计数 3-4
 }
-void woodenTriangle(){//防滑带 4
-  // 上格检测：巡线直到传感器全白（防滑带入口）
-  while(readSensorState() != STATE_00000) {
-    lineMove();
-  }
-  // 下格检测：直行直到传感器非全白（防滑带出口）
-  while (readSensorState() == STATE_00000) {
-    fixMove();
-  }
+void woodenTriangle(){//防滑带 4 疑似全白地形
   StateCount++; // 任务完成计数4-5
 }
-void smallStair(){//小型阶梯 5 全黑色 
-  // 上梯检测：巡线直到传感器全黑（入口）
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-
-  // 下梯检测：直行直到传感器非全黑（出口）
-  while (readSensorState() == STATE_11111) {
-    fixMove();
-  }
-
+void smallStair(){//小型阶梯 5 全黑色 地形 需加速到165 上坡完成后减速到100
   StateCount++; // 任务完成计数 5 - 6
 }
 void longLine(){//用于小型阶梯到栅格的长距离移动 6 速度理应加快
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  turnRightL();
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  fixMove();
-  delay(1000);
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  turnRightL();
   StateCount++; // 任务完成计数 6 -7
 }
 void grid(){//栅格 疑似全白地形 7
-  // 上格检测：巡线直到传感器全白
-  while(readSensorState() != STATE_00000) {
-    lineMove();
-  }
-  // 格子检测：直行直到传感器非白（草地出口）
-  while (readSensorState() == STATE_00000) {
-    fixMove();
-  }
   StateCount++; // 任务完成计数 7 - 8
 }
-void narrowBridge() { // 窄桥任务（全黑色） 8
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  fixMove();
-  delay(1000);
-  // 上桥检测：巡线直到传感器全黑（窄桥入口）
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-
-  // 下桥检测：直行直到传感器非全黑（窄桥出口）
-  while (readSensorState() == STATE_11111) {
-    fixMove();
-  }
+void narrowBridge() { // 窄桥任务 8 全黑色 地形 需加速到165 上坡完成后减速到100
   StateCount++; // 任务完成计数 8 - 9
 }
-void bigStair(){//大型阶梯 全黑色 9
-  // 十字路口监测
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  turnRightL();
-  // 上梯检测：巡线直到传感器全黑（入口）
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-
-  // 下梯检测：直行直到传感器非全黑（出口）
-  while (readSensorState() == STATE_11111) {
-    fixMove();
-  }
-
+void bigStair(){//大型阶梯 9 全黑色地形 需加速到165 上坡完成后减速到100
   StateCount++; // 任务完成计数 9 - 10
 }
-void shitSpeed(){//石块（屎块地形） 带黑色 一半
-  // 十字路口监测
-  while (readSensorState() != STATE_11111) {
-    lineMove();
-  }
-  turnRightL();
-  fixMove();
-  delay(2000);
-  lineMove();
-  delay(5000);
-  fixMove();
-  delay(7000);
+void shitSpeed(){//石块 10 难走
   StateCount++; // 任务完成计数 10 - 11
 }
 
