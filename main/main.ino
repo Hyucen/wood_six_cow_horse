@@ -137,12 +137,18 @@ void loop() {
     }
     case 2: {//主任务2 草地 
       substate = 0;
-      while(substate){
-        switch(substate){//子状态0 巡线并等待第一个减速带,1 进入草地 
+      while(substate <= 1){
+        switch(substate){//子状态0 巡线并等待草地 1 经过草地并等待空线
         }
       }
     }
-    case 3: {//主任务3 方形隧道
+    case 3: {//主任务3 方形隧道 定制巡线逻辑
+      substate = 0;
+      while(substate){
+        switch(substate){//子状态0 巡线并等待十字路口,1 
+          
+        }
+      }
 
     }
     case 4: {
