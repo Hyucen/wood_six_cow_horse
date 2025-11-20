@@ -182,7 +182,7 @@ void loop() {
       }
 
       case 4: { // 主任务4 U形隧道
-        substate = 0; // 不知道怎么办
+        substate = 0; // 执行计时器 计时器结束后任务结束
         
 
         Stateing = false;
@@ -201,7 +201,7 @@ void loop() {
               substate++;
               break;
             }
-            case 1: {//子状态1 
+            case 1: {//经过防滑带
               Serial.println("经过防滑带");
               while (readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110){
                 setMove();
@@ -234,7 +234,7 @@ void loop() {
               substate++;
               break;
             }
-            case 1: {
+            case 1: { // 经过栅格并等待空线
               
             }
           }
