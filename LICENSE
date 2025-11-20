@@ -1,92 +1,110 @@
-                    OCTOPUS ORANGE CUSTOM LICENSE
-                           章鱼许可 v1.0
+OCTOPUS ORANGE CUSTOM LICENSE
+章鱼许可 v1.0
 
-Preamble 序言
-This license guarantees the freedom to share and modify the software for non-commercial purposes, while requiring permission for commercial use. It also ensures that authors receive credit for their work.
+Preamble
+The Octopus Orange Custom License guarantees the freedom to share and modify the software for non-commercial purposes, while requiring explicit permission for commercial use, redistribution, and use in competitions. It ensures that authors receive proper credit for their work.
 
-本许可证保证为非商业目的共享和修改软件的自由，同时要求商业使用需获得许可。它还确保作者因其工作获得认可。
-
-Terms and Conditions 条款与条件
-1. Definitions 定义
-"Software" refers to the copyrighted work licensed under this OSL.
+Terms and Conditions
+1. Definitions
+"Software" refers to the copyrighted work licensed under this Octopus Orange Custom License.
 
 "You" means any individual or entity exercising rights under this license.
 
-"Source code" means the preferred form for making modifications.
+"Commercial Use" includes any use intended for commercial advantage, monetary compensation, or business purposes.
 
-"Object code" means any non-source form of the software.
+"Competition Use" refers to use in any contest, hackathon, or competitive event.
 
-“软件”指根据本OSL许可的受版权保护的作品。
+2. Basic Permissions
+You are free to:
 
-“您”指根据本许可证行使权利的任何个人或实体。
+Use the software privately without restrictions
 
-“源代码”指进行修改的首选形式。
+Study and modify the software for personal use
 
-“目标代码”指软件的任何非源代码形式。
+Share unmodified copies with others for non-commercial purposes
 
-2. Basic Permissions 基本权限
-All rights granted under this license are granted for non-commercial purposes only. You may:
+3. Required Permissions
+Explicit written permission from the copyright holder(s) is REQUIRED for:
 
-Copy and distribute exact copies of the software's source code
+Any commercial use of the software
 
-Modify the software and distribute modifications
+Redistribution in any form for commercial purposes
 
-Use the software privately without restriction
+Use of the software in any competition, contest, or similar event
 
-根据本许可证授予的所有权利仅适用于非商业目的。您可以：
+Incorporation into any commercial product or service
 
-复制和分发软件源代码的精确副本
-
-修改软件并分发修改版本
-
-无限制地私下使用软件
-
-3. Commercial Use Restrictions 商业使用限制
-Commercial use, redistribution for commercial purposes, or use in competitions requires explicit written permission from the copyright holder(s). This includes:
-
-Any use intended for commercial advantage or monetary compensation
-
-Distribution as part of a commercial product or service
-
-Use in any competition, contest, or similar event
-
-商业使用、以商业为目的的再分发或在比赛中的使用需要版权持有人的明确书面许可。这包括：
-
-任何旨在获得商业优势或金钱补偿的使用
-
-作为商业产品或服务的一部分进行分发
-
-在任何比赛、竞赛或类似活动中的使用
-
-4. Attribution Requirements 署名要求
+4. Attribution Requirements
 When distributing the software or modified versions, you must:
 
-Give prominent credit to the original authors
+Give clear and prominent credit to the original authors
 
 Retain all copyright, patent, trademark, and attribution notices
 
 Include a copy of this license with all distributions
 
+Clearly indicate if changes were made to the original software
+
+5. No Warranty
+THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+6. License Document
+You may copy and distribute verbatim copies of this license document, but modification of the license text is strictly prohibited.
+
+7. Termination
+This license terminates automatically if you fail to comply with any of its terms. Upon termination, you must cease all use of the software and destroy all copies.
+
+CHINESE VERSION 中文版本
+
+序言
+章鱼许可保证为非商业目的共享和修改软件的自由，同时要求商业使用、再分发和比赛使用必须获得明确许可。它确保作者因其工作获得适当的认可。
+
+条款与条件
+1. 定义
+"软件"指根据本许可授权的受版权保护的作品
+
+"您"指根据本许可证行使权利的任何个人或实体
+
+"商业使用"包括任何旨在获得商业优势、金钱补偿或商业用途的使用
+
+"比赛使用"指在任何竞赛、黑客马拉松或竞争性活动中的使用
+
+2. 基本权限
+您可以自由地：
+
+无限制地私下使用软件
+
+为个人使用而研究和修改软件
+
+为非商业目的与他人分享未修改的副本
+
+3. 需要许可的事项
+必须获得版权持有人的明确书面许可：
+
+对软件的任何商业使用
+
+以任何形式为商业目的进行再分发
+
+在任何比赛、竞赛或类似活动中使用此内容
+
+将软件纳入任何商业产品或服务中
+
+4. 署名要求
 在分发软件或修改版本时，您必须：
 
-显著标明原始作者
+清晰显著地标明原始作者
 
 保留所有版权、专利、商标和署名声明
 
 在所有分发中包含本许可证的副本
 
-5. No Warranty 无担保
-THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.
+明确标示是否对原始软件进行了修改
 
-本软件按"原样"提供，无任何明示或暗示的担保，包括但不限于适销性和特定用途适用性的暗示担保。关于软件质量和性能的全部风险由您承担。
+5. 无担保
+本软件按"原样"提供，无任何担保。版权持有人否认所有明示或暗示的担保，包括适销性、特定用途适用性和不侵权的担保。
 
-6. License Copying 许可证复制
-You may copy and distribute verbatim copies of this license document, but you may not modify it.
+6. 许可证文档
+您可以复制和分发本许可证文档的逐字副本，但严格禁止修改许可证文本。
 
-您可以复制和分发本许可证文档的逐字副本，但不得修改它。
-
-7. Termination 终止
-Your rights under this license terminate automatically if you fail to comply with any term(s). Upon termination, you must destroy all copies of the software in your possession.
-
-如果您未能遵守任何条款，您在本许可证下的权利将自动终止。终止后，您必须销毁您拥有的所有软件副本。
-
+7. 终止
+如果您未能遵守本许可证的任何条款，本许可将自动终止。终止后，您必须停止使用软件并销毁所有副本。
