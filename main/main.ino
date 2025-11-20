@@ -46,6 +46,7 @@ const int IN4 = 7;
 int StateCount = 0;
 bool Stateing = false;
 
+int substate;
 int debugcount = 0;
 //任务流程 2 8 5 6 7 3 1 10 9 4
 // 栅格1
@@ -97,7 +98,7 @@ void loop() {
       }
       
       case 1: { // 主任务1 减速带
-        static int substate = 0; // 子状态0 巡线并等待第一个减速带,1 第一个减速带，2 空线, 3 第二个减速带
+        substate = 0; // 子状态0 巡线并等待第一个减速带,1 第一个减速带，2 空线, 3 第二个减速带
         
         while (substate <= 3) {
           switch (substate) {
@@ -161,7 +162,7 @@ void loop() {
               while (readSensorState() != STATE_01110 || readSensorState() != STATE_00110 || readSensorState() != STATE_01100){
                 setMove(160,120);
               }
-              substate++
+              substate++;
               break;
             }
           }
@@ -204,7 +205,7 @@ void loop() {
             case 1: {//经过防滑带
               Serial.println("经过防滑带");
               while (readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110){
-                setMove();
+                setMove(140,140);
               }
               substate++;
               break;
@@ -227,7 +228,7 @@ void loop() {
         while(substate <= 1){
           switch(substate){
             case 0: { // 巡线并等待栅格
-              Serial.println("巡线并等待栅格")；
+              Serial.println("巡线并等待栅格");
               while(readSensorState() != 11111){
                 lineMove();
               }
@@ -235,12 +236,34 @@ void loop() {
               break;
             }
             case 1: { // 经过栅格并等待空线
-              
+              Serial.println("经过栅格并等待空线");
+              while(readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110){
+                setMove(120,120);
+              }
+              substate++;
+              break;
             }
           }
         }
       }
-    
+      
+      case 8: { // 主任务8 窄桥
+        substate = 0; // 子状态0  巡线并等待窄桥, 子状态1 进入窄桥并等待
+        Stateing = false;
+        while(substate <= 1){
+          switch(substate){
+            case 0: { // 巡线并等待窄桥
+              Serial.println("巡线并等待窄桥");
+              while(readSensorState() != 11111){
+                lineMove();
+              }
+
+            }
+          }
+        }
+
+      }
+
     }// 这是 switch 的结尾
 
   }// 这是 if 的结尾
