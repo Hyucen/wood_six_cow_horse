@@ -48,21 +48,6 @@ bool Stateing = false;
 
 int substate;
 int debugcount = 0;
-//任务流程 2 8 5 6 7 3 1 10 9 4
-// 栅格1
-// 减速带2
-// 小型阶梯3
-// 石块4
-// 方形隧道5
-// U型隧道6
-// 防滑带7
-// 柔软草地8
-// 大型阶梯9
-// 窄桥10
-/* 除了长距离任务 其余所有的任务中间一定是至多间隔一个十字路口 
-执行完十字路口函数之后开始任务前 十字路口设为禁止 任务结束后设为允许
-*/
-
 
 void setup() {
   //传感器初始化
@@ -88,6 +73,7 @@ void setup() {
 
 void loop() {
   lineMove();
+  
   if (Stateing) {
     switch (StateCount) {
       case 0: { // 主任务0 准备进入减速带并识别十字路口
@@ -98,7 +84,7 @@ void loop() {
       }
       
       case 1: { // 主任务1 减速带
-        substate = 0; // 子状态0 巡线并等待第一个减速带,1 第一个减速带，2 空线, 3 第二个减速带
+        static int substate = 0; // 子状态0 巡线并等待第一个减速带,1 第一个减速带，2 空线, 3 第二个减速带
         
         while (substate <= 3) {
           switch (substate) {
@@ -146,10 +132,10 @@ void loop() {
       }
       
       case 2: { // 主任务2 草地
-        substate = 0;   // 子状态0 巡线并等待草地 1 经过草地并等待空线
+        static int substate = 0;   // 子状态0 巡线并等待草地 1 经过草地并等待空线
         while (substate <= 1) {
           switch (substate) { 
-            case 0: {//巡线并等待草地
+            case 0: { // 巡线并等待草地
               Serial.println("巡线并等待草地");
               while (readSensorState() != STATE_11111) {
                 lineMove();
@@ -157,10 +143,10 @@ void loop() {
               substate++;
               break;
             }
-            case 1: {//经过草地 等待空线
+            case 1: { // 经过草地 等待空线
               Serial.println("经过草地并等待空线");
-              while (readSensorState() != STATE_01110 || readSensorState() != STATE_00110 || readSensorState() != STATE_01100){
-                setMove(160,120);
+              while (readSensorState() != STATE_01110 && readSensorState() != STATE_00110 && readSensorState() != STATE_01100) {
+                setMove(160, 120);
               }
               substate++;
               break;
@@ -173,28 +159,63 @@ void loop() {
       }
 
       case 3: { // 主任务3 方形隧道
-        substate = 0; // 执行自定义巡线逻辑 左转四次后方形隧道任务结束 【左转完成后才能更改状态】
-        while(substate < 4){
+        static int turnCount = 0; // 记录已经完成的左转弯次数
+        static bool waitingForTurn = true; // 是否正在等待转弯条件
 
+        if (turnCount < 4) {
+          if (waitingForTurn) {
+            // 巡线直到检测到左转弯条件
+            lineMove();
+            // 检测左转弯条件（根据您的传感器状态定义）
+            if (readSensorState() == STATE_11100 || readSensorState() == STATE_11110) {
+              waitingForTurn = false;
+              Serial.println("检测到左转弯条件，开始左转");
+            }
+         } else {
+           // 执行左转弯（调用您的阻塞函数 turnLeftL）
+           turnLeftL();
+            turnCount++;
+            Serial.print("完成左转弯次数: ");
+            Serial.println(turnCount);
+            waitingForTurn = true; // 重置状态，等待下一次转弯条件
+          }
+       } else {
+         // 完成四次转弯，任务结束
+          Serial.println("方形隧道任务完成");
+         Stateing = false;
+          StateCount++;
+         turnCount = 0; // 重置计数
+         waitingForTurn = true; // 重置状态
         }
-        Stateing = false;
-        StateCount++;
+       break;
+           }
+
+      case 4: { // 主任务4 U形隧道
+        static unsigned long tunnelStartTime = 0;
+        
+        if (tunnelStartTime == 0) {
+          tunnelStartTime = millis();
+          Serial.println("U形隧道任务开始");
+        }
+        
+        // 在隧道内持续巡线
+        lineMove();
+        
+        // 检查是否达到10秒
+        if (millis() - tunnelStartTime >= 10000) {
+          Serial.println("U形隧道任务完成");
+          Stateing = false;
+          StateCount++;
+          tunnelStartTime = 0; // 重置计时器
+        }
         break;
       }
 
-      case 4: { // 主任务4 U形隧道
-        substate = 0; // 执行计时器 计时器结束后任务结束
-        
-
-        Stateing = false;
-        StateCount++;
-      }
-
       case 5: { // 主任务5 防滑带
-        substate = 0; // 子状态0 巡线并等待防滑带, 子状态1 进入防滑带并等待空线（或使用delay控制经过时间）
-        while (substate <=1 ) {
+        static int substate = 0; // 子状态0 巡线并等待防滑带, 子状态1 进入防滑带并等待空线
+        while (substate <= 1) {
           switch (substate) {
-            case 0: {//巡线并等待防滑带
+            case 0: { // 巡线并等待防滑带
               Serial.println("巡线并等待防滑带");
               while (readSensorState() != STATE_00000) {
                 lineMove();
@@ -202,10 +223,10 @@ void loop() {
               substate++;
               break;
             }
-            case 1: {//经过防滑带
+            case 1: { // 经过防滑带
               Serial.println("经过防滑带");
-              while (readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110){
-                setMove(140,140);
+              while (readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110) {
+                setMove(140, 140);
               }
               substate++;
               break;
@@ -214,22 +235,94 @@ void loop() {
         }
         Stateing = false;
         StateCount++;
+        break;
       }
-
-      case 6: { // 主任务6X 长距离巡线处理
-        substate = 0; // 执行自定义巡线逻辑 第一次 00111右拐 第二次00111直行 第三次00111右拐 结束
-        // TODO 还没写
+      
+      case 6: { // 主任务6 小型阶梯
+        static int substate = 0; // 子状态0 巡线并等待阶梯, 子状态1 进入阶梯并等待
+        while (substate <= 1) {
+          switch (substate) {
+            case 0: { // 巡线并等待阶梯
+              Serial.println("巡线并等待阶梯");
+              while (readSensorState() != STATE_11111) {
+                lineMove();
+              }
+              substate++;
+              break;
+            }
+            case 1: { // 进入阶梯等待空线
+              Serial.println("进入阶梯");
+              setMove(170, 170);
+              delay(2000);
+              while (readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110) {
+                setMove(70, 70);
+              }
+              substate++;
+              break;
+            }
+          }
+        }
         Stateing = false;
         StateCount++;
+        break;
       }
-
-      case 7: { // 主任务7 栅格 
-        substate = 0; // 子状态0 巡线并等待栅格， 子状态1 进入栅格并等待
-        while(substate <= 1){
-          switch(substate){
+      
+      case 7: { // 主任务7 长距离巡线处理
+        static int crossCount = 0; // 十字路口计数
+        static bool inAction = false; // 是否正在执行动作
+        static unsigned long actionStartTime = 0;
+        
+        if (!inAction) {
+          // 正常巡线
+          lineMove();
+          
+          // 检测十字路口
+          if (readSensorState() == STATE_00111 || readSensorState() == STATE_01111) {
+            inAction = true;
+            actionStartTime = millis();
+            
+            switch (crossCount) {
+              case 0: // 第一次右拐
+                Serial.println("检测到第一个十字路口，右转");
+                turnRightL();
+                crossCount++;
+                break;
+              case 1: // 第二次直行
+                Serial.println("检测到第二个十字路口，直行");
+                move();
+                crossCount++;
+                break;
+              case 2: // 第三次右拐
+                Serial.println("检测到第三个十字路口，右转");
+                turnRightL();
+                crossCount++;
+                break;
+            }
+          }
+        } else {
+          // 检查动作是否完成
+          if (millis() - actionStartTime > 1000) { // 假设动作完成需要1秒
+            inAction = false;
+            
+            // 检查是否完成所有十字路口
+            if (crossCount >= 3) {
+              Serial.println("长距离巡线任务完成");
+              Stateing = false;
+              StateCount++;
+              crossCount = 0; // 重置计数
+            }
+          }
+        }
+        break;
+      }
+      
+      case 8: { // 主任务8 栅格
+        static int substate = 0; // 子状态0 巡线并等待栅格，子状态1 进入栅格并等待
+        while (substate <= 1) {
+          switch (substate) {
             case 0: { // 巡线并等待栅格
               Serial.println("巡线并等待栅格");
-              while(readSensorState() != 11111){
+              while (readSensorState() != STATE_11111) {
                 lineMove();
               }
               substate++;
@@ -237,87 +330,90 @@ void loop() {
             }
             case 1: { // 经过栅格并等待空线
               Serial.println("经过栅格并等待空线");
-              while(readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110){
-                setMove(120,120);
+              while (readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110) {
+                setMove(120, 120);
               }
               substate++;
               break;
             }
           }
         }
+        Stateing = false;
+        StateCount++;
+        break;
       }
       
-      case 8: { // 主任务8 窄桥
-        substate = 0; // 子状态0  巡线并等待窄桥, 子状态1 进入窄桥并等待
-        Stateing = false;
-        while(substate <= 1){
-          switch(substate){
+      case 9: { // 主任务9 窄桥
+        static int substate = 0; // 子状态0 巡线并等待窄桥, 子状态1 进入窄桥并等待
+        while (substate <= 1) {
+          switch (substate) {
             case 0: { // 巡线并等待窄桥
               Serial.println("巡线并等待窄桥");
-              while(readSensorState() != 11111){
+              while (readSensorState() != STATE_11111) {
                 lineMove();
               }
-
+              substate++;
+              break;
+            }
+            case 1: { // 进入窄桥等待空线
+              Serial.println("进入窄桥");
+              setMove(170, 170);
+              delay(2000);
+              while (readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110) {
+                setMove(70, 70);
+              }
+              substate++;
+              break;
             }
           }
         }
-
+        Stateing = false;
+        StateCount++;
+        break;
       }
-
-    }// 这是 switch 的结尾
-
-  }// 这是 if 的结尾
-}// 这是 loop() 函数的结尾
-
-//任务函数
-/*TODO 所有任务前应当加入十字路口判定 所有任务后应当加入状态机更改判定*/
-
-
-void notFastBlock() {
-
-}
-void fuWaFuWaGrass(){//草地 1 全黑地形 需要自行设定偏移
-  static int substate = 0; // 子状态：0=草地 1=下一个十字路口
-  Stateing = false;
-  StateCount++; // 任务完成计数 1-2
-}
-void squareTunnel(){//方形隧道 2 
-  Stateing = false;
-  StateCount++; // 任务完成计数 2-3
-}
-void uTunnel(){//U形隧道 3
-  Stateing = false;
-  StateCount++; //任务完成计数 3-4
-}
-void woodenTriangle(){//防滑带 4 疑似全白地形
-  Stateing = false;
-  StateCount++; // 任务完成计数4-5
-}
-void smallStair(){//小型阶梯 5 全黑色 地形 需加速到165 上坡完成后减速到100
-  Stateing = false;
-  StateCount++; // 任务完成计数 5 - 6
-}
-void longLine(){//用于小型阶梯到栅格的长距离移动 6 速度理应加快
-  StateCount++; // 任务完成计数 6 -7
-}
-void grid(){//栅格 疑似全白地形 7
-  Stateing = false;
-  StateCount++; // 任务完成计数 7 - 8
-}
-void narrowBridge() { // 窄桥任务 8 全黑色 地形 需加速到165 上坡完成后减速到100
-  Stateing = false;
-  StateCount++; // 任务完成计数 8 - 9
-}
-void bigStair(){//大型阶梯 9 全黑色地形 需加速到165 上坡完成后减速到100
-  Stateing = false;
-  StateCount++; // 任务完成计数 9 - 10
-}
-void shitSpeed(){//石块 10 难走
-  Stateing = false;
-  StateCount++; // 任务完成计数 10 - 11
-}
-
-
+      
+      case 10: { // 主任务10 大型阶梯
+        static int substate = 0; // 子状态0 巡线并等待阶梯, 子状态1 进入阶梯并等待
+        while (substate <= 1) {
+          switch (substate) {
+            case 0: { // 巡线并等待阶梯
+              Serial.println("巡线并等待阶梯");
+              while (readSensorState() != STATE_11111) {
+                lineMove();
+              }
+              substate++;
+              break;
+            }
+            case 1: { // 进入阶梯等待空线
+              Serial.println("进入阶梯");
+              setMove(170, 170);
+              delay(3500);
+              while (readSensorState() != STATE_01110 && readSensorState() != STATE_01100 && readSensorState() != STATE_00110) {
+                setMove(70, 70);
+              }
+              substate++;
+              break;
+            }
+          }
+        }
+        Stateing = false;
+        StateCount++;
+        break;
+      }
+      
+      case 11: { // 主任务11 巡线加速冲刺
+        Stateing = false;
+        StateCount++;
+        break;
+      }
+      
+      default: {
+        stop();
+        break;
+      }
+    } // 结束 switch
+  } // 结束 if (Stateing)
+} // 结束 loop()
 
 
 
