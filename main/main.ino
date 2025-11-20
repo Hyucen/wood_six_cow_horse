@@ -224,7 +224,21 @@ void loop() {
 
       case 7: { // 主任务7 栅格 
         substate = 0; // 子状态0 巡线并等待栅格， 子状态1 进入栅格并等待
-
+        while(substate <= 1){
+          switch(substate){
+            case 0: { // 巡线并等待栅格
+              Serial.println("巡线并等待栅格")；
+              while(readSensorState() != 11111){
+                lineMove();
+              }
+              substate++;
+              break;
+            }
+            case 1: {
+              
+            }
+          }
+        }
       }
     
     }// 这是 switch 的结尾
