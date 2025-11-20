@@ -356,7 +356,7 @@ void crossMove() {
   // 处理完十字路口后，增加 StateCount 并设置 Stateing = true
   StateCount++;
   
-  // 确保 StateCount 不越界（根据您的任务数量）
+  // 确保 StateCount 不越界（根据任务数量）
   if (StateCount > 11) {
     StateCount = 12; // 最终状态
   }
