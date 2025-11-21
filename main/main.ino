@@ -73,7 +73,7 @@ void setup() {
 
 void loop() {
   lineMove();
-  
+  Serial.println(StateCount);
   if (Stateing) {
     switch (StateCount) {
       case 0: { // 主任务0 准备进入减速带并识别十字路口
@@ -84,13 +84,14 @@ void loop() {
       }
       
       case 1: { // 主任务1 减速带
-        static int substate = 0; // 子状态0 巡线并等待第一个减速带,1 第一个减速带，2 空线, 3 第二个减速带
+        static int substate = 0; // 子状态0 巡线并等待第一个减速带,1 第一个减速带，2 空线, 3 第二个减速带  
         
         while (substate <= 3) {
           switch (substate) {
             case 0: { // 巡线并等待第一个减速带
               Serial.println("巡线并等待第一个减速带");
-              while (readSensorState() != STATE_11111) {
+              delay(100);
+              while (readSensorState() != STATE_11111 ) {
                 lineMove();
               }
               substate++;
@@ -99,6 +100,7 @@ void loop() {
             
             case 1: { // 进入第一个减速带 等待无减速带区
               Serial.println("进入第一个减速带 等待无减速带区");
+              delay(100);
               while (readSensorState() == STATE_11111) {
                 setMove(140, 140);
               }
@@ -108,6 +110,7 @@ void loop() {
             
             case 2: { // 进入空线 等待减速带
               Serial.println("进入空线 等待减速带");
+              delay(100);
               while (readSensorState() != STATE_11111) {
                 lineMove();
               }
@@ -127,7 +130,6 @@ void loop() {
         }
         
         Stateing = false;
-        StateCount++;
         break;
       }
       
@@ -146,7 +148,7 @@ void loop() {
             case 1: { // 经过草地 等待空线
               Serial.println("经过草地并等待空线");
               while (readSensorState() != STATE_01110 && readSensorState() != STATE_00110 && readSensorState() != STATE_01100) {
-                setMove(160, 120);
+                setMove(170, 170);
               }
               substate++;
               break;
@@ -154,7 +156,6 @@ void loop() {
           }
         }
         Stateing = false;
-        StateCount++;
         break;
       }
 
@@ -183,7 +184,6 @@ void loop() {
          // 完成四次转弯，任务结束
           Serial.println("方形隧道任务完成");
          Stateing = false;
-          StateCount++;
          turnCount = 0; // 重置计数
          waitingForTurn = true; // 重置状态
         }
@@ -205,7 +205,6 @@ void loop() {
         if (millis() - tunnelStartTime >= 10000) {
           Serial.println("U形隧道任务完成");
           Stateing = false;
-          StateCount++;
           tunnelStartTime = 0; // 重置计时器
         }
         break;
@@ -234,7 +233,6 @@ void loop() {
           }
         }
         Stateing = false;
-        StateCount++;
         break;
       }
       
@@ -263,7 +261,6 @@ void loop() {
           }
         }
         Stateing = false;
-        StateCount++;
         break;
       }
       
@@ -308,7 +305,6 @@ void loop() {
             if (crossCount >= 3) {
               Serial.println("长距离巡线任务完成");
               Stateing = false;
-              StateCount++;
               crossCount = 0; // 重置计数
             }
           }
@@ -339,7 +335,6 @@ void loop() {
           }
         }
         Stateing = false;
-        StateCount++;
         break;
       }
       
@@ -368,7 +363,6 @@ void loop() {
           }
         }
         Stateing = false;
-        StateCount++;
         break;
       }
       
@@ -397,13 +391,11 @@ void loop() {
           }
         }
         Stateing = false;
-        StateCount++;
         break;
       }
       
       case 11: { // 主任务11 巡线加速冲刺
         Stateing = false;
-        StateCount++;
         break;
       }
       
@@ -418,60 +410,43 @@ void loop() {
 
 
 //巡线模式
-void lineMove(){//基础巡线模式
-  //正常移动
+void lineMove() {
+  // 正常移动和偏移修正（始终执行）
   if (readSensorState() == STATE_01110 || readSensorState() == STATE_00100) {
     move();
-  }else 
-
-  //左偏移修正
-  if(readSensorState() == STATE_01100 || readSensorState() == STATE_11000 || readSensorState() == STATE_01000 || readSensorState() == STATE_10000){
+  } else if (readSensorState() == STATE_01100 || readSensorState() == STATE_11000 || 
+             readSensorState() == STATE_01000 || readSensorState() == STATE_10000) {
     turnLeftS();
-  }else 
-
-  //右偏移修正
-  if(readSensorState() == STATE_00110 || readSensorState() == STATE_00011 || readSensorState() == STATE_00010 || readSensorState() == STATE_00001){
+  } else if (readSensorState() == STATE_00110 || readSensorState() == STATE_00011 || 
+             readSensorState() == STATE_00010 || readSensorState() == STATE_00001) {
     turnRightS();
-  }else 
-
-  //带有路口判定的制动左转弯
-  if(readSensorState() == STATE_11100 || readSensorState() == STATE_11110){
-
-    //L T + 型路口判定
-    //制动流程
-    brake();
-    delay(200); 
-
-    //制动后判定是否是T +路口
-    if(readSensorState() == STATE_11111 || readSensorState() == STATE_01110 && Stateing == false){
-      crossMove();
-    }else 
-    //非十字路口就左转
-    {
-      turnLeftL();
-    }
-  }else
-
-  //带有路口判定的制动右转弯
-  if(readSensorState() == STATE_00111 || readSensorState() == STATE_01111 ){
-
-    //L T + 型路口判定
-    //制动流程
-    brake();
-    delay(200);
-
-    //制动后判定是否是T +路口
-    if(readSensorState() == STATE_11111 || readSensorState() == STATE_01110 && Stateing == false){
-      crossMove();
-    }else
-    //非十字路口就右转
-    {
-      turnRightL();
-    }
-  }else if(readSensorState() == STATE_00000){
-    //TODO 丢失线路判定
-  }else {
+  } else if (readSensorState() == STATE_00000) {
+  } else {
     move();
+  }
+
+  // 只有在 Stateing 为 false 时才执行路口判定和转弯
+  if (!Stateing) {
+    // 带有路口判定的制动左转弯
+    if (readSensorState() == STATE_11100 || readSensorState() == STATE_11110) {
+      brake();
+      delay(200);
+      if (readSensorState() == STATE_11111 || readSensorState() == STATE_01110) {
+        crossMove();
+      } else {
+        turnLeftL();
+      }
+    }
+    // 带有路口判定的制动右转弯
+    else if (readSensorState() == STATE_00111 || readSensorState() == STATE_01111) {
+      brake();
+      delay(200);
+      if (readSensorState() == STATE_11111 || readSensorState() == STATE_01110) {
+        crossMove();
+      } else {
+        turnRightL();
+      }
+    }
   }
 }
 
@@ -484,25 +459,26 @@ void crossMove() {
   
   // 根据当前 StateCount 处理十字路口
   switch (StateCount) {
-    case 0: case 1: case 2: case 5: case 7: case 9: 
+    case 0: case 1: case 2: case 4: case 5: case 7: case 9: case 10: 
+      // 这些任务后的十字路口直行
       move();
       delay(500);
       break;
     case 3: case 6: case 8: 
+      // 这些任务后的十字路口右转
       turnRightL();
       break;
   }
   
   // 处理完十字路口后，增加 StateCount 并设置 Stateing = true
   StateCount++;
-  
-  // 确保 StateCount 不越界（根据任务数量）
+  Stateing = true;
+  // 确保 StateCount 不越界（根据您的任务数量）
   if (StateCount > 11) {
     StateCount = 12; // 最终状态
   }
 }
 void move(){//基础移动
-  Serial.println("Move");
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 0);
@@ -535,7 +511,6 @@ void stop(){//停止
   analogWrite(ENB, 0);
 }
 void turnRightS(){//向右侧原地修正
-  Serial.println("TRs");
   digitalWrite(IN1, 1);
   digitalWrite(IN2, 0);
   digitalWrite(IN3, 0);
@@ -545,7 +520,6 @@ void turnRightS(){//向右侧原地修正
 }
 
 void turnLeftS(){//向左侧原地修正
-  Serial.println("TLs");
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
   digitalWrite(IN3, 1);
