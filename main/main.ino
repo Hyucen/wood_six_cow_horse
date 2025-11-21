@@ -9,13 +9,10 @@
 #define STATE_01000 0b01000 //右偏 向左调平
 #define STATE_10000 0b10000 //右偏 向左调平
 
-
-
 #define STATE_00110 0b00110 //左偏 向右调平
 #define STATE_00011 0b00011 //左偏 向右调平
 #define STATE_00010 0b00010 //左偏 向右调平
 #define STATE_00001 0b00001 //左偏 向右调平
-
 
 //转弯情况
 #define STATE_00111 0b00111 //向右转
@@ -25,8 +22,6 @@
 
 #define STATE_00000 0b00000
 #define STATE_11111 0b11111
-
-
 
 //七路灰度传感器作为伪五路传感器使用 无视2 6路
 const int L1 = A1; 
@@ -49,15 +44,21 @@ bool Stateing = false;
 int substate;
 int debugcount = 0;
 
+// === 新增：传感器防抖动变量 ===
+int lastStableSensorState = STATE_00000; // 上次稳定的传感器状态
+unsigned long lastSensorReadTime = 0;     // 上次传感器读取时间
+const unsigned long SENSOR_READ_INTERVAL = 20; // 传感器读取间隔(ms)
+const int DEBOUNCE_THRESHOLD = 3;         // 去抖动阈值，连续3次相同才更新状态
+int sensorDebounceCount = 0;              // 传感器去抖动计数器
+int lastRawSensorState = STATE_00000;     // 上次原始传感器状态
+
 void setup() {
   //传感器初始化
-
   pinMode(L1, INPUT); 
   pinMode(L2, INPUT);
   pinMode(MID, INPUT);
   pinMode(R2, INPUT);
   pinMode(R1, INPUT);
-
 
   //电机初始化
   pinMode(IN1, OUTPUT);
@@ -478,6 +479,7 @@ void crossMove() {
     StateCount = 12; // 最终状态
   }
 }
+
 void move(){//基础移动
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
@@ -486,6 +488,7 @@ void move(){//基础移动
   analogWrite(ENA, 110);
   analogWrite(ENB, 120);
 }
+
 void fixMove(){//无巡线模式下的修正尽力均衡移动
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
@@ -494,6 +497,7 @@ void fixMove(){//无巡线模式下的修正尽力均衡移动
   analogWrite(ENA, 140);
   analogWrite(ENB, 140);
 }
+
 void setMove(int enbspeed,int enaspeed) {//定速移动 参数 左 右
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 1);
@@ -502,6 +506,7 @@ void setMove(int enbspeed,int enaspeed) {//定速移动 参数 左 右
   analogWrite(ENA, enaspeed);
   analogWrite(ENB, enbspeed);
 }
+
 void stop(){//停止
   digitalWrite(IN1, 0);
   digitalWrite(IN2, 0);
@@ -510,6 +515,7 @@ void stop(){//停止
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
 }
+
 void turnRightS(){//向右侧原地修正
   digitalWrite(IN1, 1);
   digitalWrite(IN2, 0);
@@ -539,6 +545,7 @@ void brake(){
     delay(10);
     stop();
 }
+
 void turnLeftL(){//左转
   //转弯流程
   unsigned long startTime= millis();
@@ -553,6 +560,7 @@ void turnLeftL(){//左转
     if(millis() - startTime > timeout) return;
   }
 }
+
 void turnRightL(){//右转
   //转弯流程
   unsigned long startTime = millis();
@@ -568,12 +576,34 @@ void turnRightL(){//右转
   }
 }
 
-int readSensorState() {//传感器状态
+// === 修改：添加了防抖动的传感器读取函数 ===
+int readSensorState() {
+  // 限制传感器读取频率
+  if (millis() - lastSensorReadTime < SENSOR_READ_INTERVAL) {
+    return lastStableSensorState;
+  }
+  lastSensorReadTime = millis();
+  
+  // 读取原始传感器状态
   int g1 = digitalRead(L1);
   int g2 = digitalRead(L2);
   int g3 = digitalRead(MID);
   int g4 = digitalRead(R2);
   int g5 = digitalRead(R1);
-  // 将7个传感器状态组合成一个7位二进制数（范围0-127）
-  return (g1 << 4) | (g2 << 3) | (g3 << 2) | (g4 << 1) | g5;
+  int currentState = (g1 << 4) | (g2 << 3) | (g3 << 2) | (g4 << 1) | g5;
+  
+  // 防抖动逻辑
+  if (currentState == lastRawSensorState) {
+    sensorDebounceCount++;
+    if (sensorDebounceCount >= DEBOUNCE_THRESHOLD) {
+      // 连续3次读取到相同状态，更新稳定状态
+      lastStableSensorState = currentState;
+    }
+  } else {
+    // 状态发生变化，重置计数器
+    sensorDebounceCount = 0;
+    lastRawSensorState = currentState;
+  }
+  
+  return lastStableSensorState;
 }
